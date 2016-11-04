@@ -5,6 +5,7 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
@@ -35,7 +36,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private static ArrayList<VideoPreview> currDraw;
 
     // mMVPMatrix is an abbreviation for "Model View Projection Matrix"
-    private final float[] mMVPMatrix = new float[16];
+    private float[] mMVPMatrix = new float[16];
     private final float[] mProjectionMatrix = new float[16];
     private final float[] mViewMatrix = new float[16];
     private final float[] mRotationMatrix = new float[16];
@@ -49,6 +50,8 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private boolean newRow = true;
     private boolean delt;
     private float z = 0f;
+    private boolean currVideoTotallyLoaded = false;
+    private boolean currVideoCompleted = false;
 
     public MyGLRenderer(Context context) {
         q = new ArrayList<VideoPreview>();
@@ -62,11 +65,9 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private int width;
     private int height;
 
-    private int t;
     public boolean down = false;
 
-    VideoPreview vp;
-    VideoPreview curr;
+    static Video currVideo;
     Texture tex;
 
     float[] mModel = new float[16];
@@ -90,41 +91,35 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         GLES20.glEnable(GLES20.GL_BLEND);
         GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 
-        //curr = new VideoPreview("ASDF", "adf", 0.25f, -0.25f, 0.0f, glText);
-
-        try {
-            tex = new Texture(context, "Ejr9KBQzQPM");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
     public void onDrawFrame(GL10 unused) {
-        // Draw background color
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
-
-        z = z + .01f;
-
         float[] scratch = new float[16];
-        //Matrix.setIdentityM(mViewMatrix, 0);
-        Matrix.setIdentityM(mModel, 0);
-        Matrix.translateM(mModel, 0, 0f, 0f, 3+z);
+
         Matrix.setIdentityM(scratch, 0);
-        Matrix.scaleM(scratch, 0, .5f, .5f, 0f);
-        Matrix.multiplyMM(mModel, 0, mModel, 0, scratch, 0);
-        Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mModel, 0);
+        Matrix.scaleM(scratch, 0, 1.0f, 0.75f, 1.0f);
 
-        VideoPreview vp = null;
+        mMVPMatrix = new float[16];
+        Matrix.setIdentityM(mMVPMatrix, 0);
+        //Matrix.multiplyMM(mMVPMatrix, 0, mMVPMatrix, 0, scratch, 0);
+        Matrix.scaleM(mMVPMatrix, 0, 1.0f, 0.25f, 0.0f);
 
-        if(q.size() > 1 && newVideo){
-            vp = q.remove(0);
 
-            newVideo = false;
+        if(currVideo != null && currVideo.previewLoaded() && !currVideoCompleted){
+            try {
+                Bitmap current = currVideo.getBitmap();
+
+                tex = new Texture(context, current);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            currVideoCompleted = true;
         }
 
-        if(vp != null) {
-            vp.draw(mMVPMatrix);
+        if(currVideoCompleted) {
+            tex.draw(mMVPMatrix);
         }
     }
 
@@ -189,12 +184,17 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         }
     }
 
-    public static void addVideo(ArrayList<String[]> set) throws IOException {
+    public static void setRelated(ArrayList<String[]> set) throws IOException {
         //Log.i("Tag", Thread.currentThread().getName());
-        for(String[] in : set){
-            q.add(new VideoPreview(in[0], in[1], 1.0f, 0.85f, 0f, glText, context));
-        }
+
+        String[] currVideoProperties = (String[]) set.remove(0); // the first video in this list is the video to be played aka main video, check video.java
+        currVideo = new Video(currVideoProperties[0], currVideoProperties[1], 0.0f, 0.0f, 0.0f);
+
+        currVideo.downloadPreviewPhoto();
+
     }
+
+
 
     public void scanButtons(float x, float y) {
         Log.i("Touch", Thread.currentThread().getName());
@@ -202,4 +202,5 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
             //currVp.buttonQuery(x, y);
         }
     }
+
 }

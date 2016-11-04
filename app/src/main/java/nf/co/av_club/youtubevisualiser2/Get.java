@@ -1,19 +1,7 @@
 package nf.co.av_club.youtubevisualiser2;
 
-/**
- * Created by VF on 10/27/2016.
- */
-
-import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Log;
-import android.widget.Toast;
-
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,35 +16,81 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
- * Created by VF on 10/15/2016.
+ * Created by VF on 11/3/2016.
  */
-public class HTTP {
-    Context context;
+public class Get implements Runnable {
+    private final String url;
 
-    public HTTP(Context context, GetterThread gt) {
+    public Get(String url){
+        this.url = url;
 
     }
 
-    public void get(final String url) throws IOException {
+    public void run(){
         try
         {
             // open a socket
-            Socket socket = openSocket("www.google.com", 80);
+            Socket socket = openSocket("ytphp-colonel.c9.io", 80);
 
             // write-to, and read-from the socket.
             // in this case just write a simple command to a web server.
-            String result = writeToAndReadFromSocket(socket, "GET / HTTP/1.1\r\n\r\n");
+            String response = writeToAndReadFromSocket(socket, "GET " + "/yt.php?videoKey=" + url + " HTTP/1.1\r\n"+
+                    "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\r\n" +
+                    //"Accept-Encoding: gzip, deflate, sdch, br\r\n" +
+                    //"Accept-Language: en-US,en;q=0.8\r\n" +
+                    "Cache-Control: max-age=0\r\n" +
+                    "Connection: keep-alive\r\n" +
+                    "Keep-Alive: 300\r\n" +
+                    "Host: ytphp-colonel.c9.io\r\n" +
+                    "Upgrade-Insecure-Requests: 1\r\n" +
+                    "User-Agent: Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.76 Mobile Safari/537.36\r\n" +
+                    "\r\n");
 
-            // print out the result we got back from the server
-            //System.out.println(result);
+            Log.i("HTTP", response);
+
+            String result = (response.split("\n\n\n",2))[1];
+
             Log.i("HTTP", result);
 
             // close the socket, and we're done
             socket.close();
+
+            try {
+                JSONObject obj = new JSONObject(result);
+                Iterator<String> str = obj.keys();
+
+                final ArrayList<String[]> set = new ArrayList<String[]>();
+
+                while(str.hasNext()){
+                    final String key = str.next();
+                    final String value = obj.getString(key);
+
+                    String tmp[] = {key, value};
+
+                    set.add(tmp);
+
+                    Log.i("json", "key: " + key + ", " + "value: " + value);
+                }
+
+
+                MyGLSurfaceView glView = MyGLSurfaceView.getInstance();
+                glView.queueEvent(new Runnable(){
+                    @Override
+                    public void run() {
+                        try {
+                            MyGLRenderer.setRelated(set);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            } catch(JSONException e) {
+                e.printStackTrace();
+            }
         }
         catch (Exception e)
         {
@@ -64,6 +98,7 @@ public class HTTP {
         }
     }
 
+    @NonNull
     private String writeToAndReadFromSocket(Socket socket, String writeTo) throws Exception
     {
         try

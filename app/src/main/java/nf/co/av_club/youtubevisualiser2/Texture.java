@@ -52,6 +52,7 @@ public class Texture{
     public ShortBuffer drawListBuffer;
     public FloatBuffer uvBuffer;
 
+    private Bitmap bmp;
     Context mContext;
 
     int vertexShader;
@@ -62,12 +63,14 @@ public class Texture{
 
     String key;
 
-    public Texture(Context context, String key) throws IOException {
+    public Texture(Context context, Bitmap bmp) throws IOException {
         this.mContext = context;
+        this.bmp = bmp;
 
         setupTriangleInput();
         SetupImage(key);
         loadShaders();
+
     }
 
     public void setupTriangleInput(){
@@ -139,20 +142,6 @@ public class Texture{
         // Temporary create a bitmap
         //Bitmap bmp = BitmapFactory.decodeResource(mContext.getResources(), id);
 
-        Bitmap bmp = null;
-
-                URL url = null;
-                try {
-                    url = new URL("https://i.ytimg.com/vi/" + key + "/hqdefault.jpg");
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
         // Bind texture to texturename
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texturenames[0]);
@@ -170,7 +159,7 @@ public class Texture{
                 GLES20.GL_CLAMP_TO_EDGE);
 
         // Load the bitmap into the bound texture.
-        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bmp, 0);
+        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, this.bmp, 0);
 
         // We are done using the bitmap so we should recycle it.
         bmp.recycle();

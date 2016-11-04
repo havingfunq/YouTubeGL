@@ -12,6 +12,7 @@ import java.io.IOException;
  */
 class MyGLSurfaceView extends GLSurfaceView {
     private boolean down = false;
+    static MyGLSurfaceView mglview;
 
     private final MyGLRenderer mRenderer;
 ///////////////////////////////////
@@ -41,6 +42,7 @@ class MyGLSurfaceView extends GLSurfaceView {
 
         setRenderer(mRenderer);
 
+        mglview = this;
     }
 
 
@@ -99,5 +101,9 @@ class MyGLSurfaceView extends GLSurfaceView {
         mPreviousX = x;
         mPreviousY = y;
         return true;
+    }
+
+    public static MyGLSurfaceView getInstance(){
+        return mglview;
     }
 }

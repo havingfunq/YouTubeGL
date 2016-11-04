@@ -5,12 +5,16 @@ import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
 
     private GLSurfaceView mGLView;
+    Thread getterThread;
+
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
@@ -18,11 +22,8 @@ public class MainActivity extends Activity {
 
         // Create a GLSurfaceView instance and set it
         // as the ContentView for this Activity.
-        mGLView = new MyGLSurfaceView(this);
-        setContentView(mGLView);
-
-        Thread getterThread = new Thread(new GetterThread(this, mGLView));
-        getterThread.start();
+        //mGLView = new MyGLSurfaceView(this);
+        setContentView(R.layout.activity_main);
     }
 
     @Override
@@ -55,4 +56,11 @@ public class MainActivity extends Activity {
         mGLView.onResume();
     }
 
+    public void start(View v){
+        EditText editText = (EditText) findViewById(R.id.EditText);
+        String key = editText.getText().toString();
+
+        getterThread = new Thread(new Get(key));
+        getterThread.start();
+    }
 }
