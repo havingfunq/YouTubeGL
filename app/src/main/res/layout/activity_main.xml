@@ -3,33 +3,45 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="nf.co.av_club.youtubevisualiser2.MainActivity">
 
+    android:id="@+id/relative_layout">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/linearLayout"
+    <RelativeLayout
+        android:id="@+id/InnerRelativeLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
         >
-        <SeekBar
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/seekBar"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true"
 
-            android:layout_gravity="right"
-            android:layout_weight="1"
-            style="@style/Base.Widget.AppCompat.SeekBar.Discrete"
-            android:visibility="visible"
-            android:background="@color/abc_background_cache_hint_selector_material_dark" />
-    </LinearLayout>
+        <LinearLayout
+            android:id="@+id/linear_layout"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            >
+
+            <Button
+                android:text="Start"
+                android:id="@+id/Button"
+                android:layout_alignParentRight="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="start">
+            </Button>
+
+            <EditText
+                android:id="@+id/EditText"
+                android:layout_width="fill_parent"
+                android:layout_toLeftOf="@id/Button"
+                android:layout_height="wrap_content">
+            </EditText>
+        </LinearLayout>
+    </RelativeLayout>
 
     <nf.co.av_club.youtubevisualiser2.MyGLSurfaceView
         android:id="@+id/surfaceviewclass"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/linearLayout"
-        android:max="100"
+        android:layout_above="@+id/InnerRelativeLayout"
         />
 </RelativeLayout>
